@@ -16,8 +16,21 @@ class WOE:
         self.X_bin = pd.DataFrame()
         self.X_woe = pd.DataFrame()
         #经过woe替代的数据集
+    
+    #find columns including missing values
+    def find_na_column(self,df):
+        miss_columns = []
+        for column in df:
+            if sum(pd.isnull(df[column])) > 0:
+                miss_columns.append(column)
+        return miss_columns
         
     def woe(self, X, y, event=1, category_cols = []):
+        #are there any columns including missing values
+        miss_columns = self.find_na_column(X)
+        if len(miss_columns) > 0:
+            raise Exception('there are some columns (%s) including missing values' % ', '.join(miss_columns))
+            
         #检查y是否是二分类变量，如果不是，内部raise错误
         self.check_target_binary(y)
         self.X_bin = self.feature_discretion(X, category_cols)
@@ -40,9 +53,7 @@ class WOE:
 
     def woe_single_x(self, x, y, event=1):
         self.check_target_binary(y)
-
         event_total, non_event_total = self.count_binary(y, event=event)
-        #x_labels = np.unique(x)
         x_labels = x.unique()
         woe_dict = {}
         iv = 0
