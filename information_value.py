@@ -168,7 +168,7 @@ class WOE:
             x1 = x[(x >= point1) & (x <= point2)]
             mask = np.in1d(x, x1)
             #x_copy[mask] = i + 1
-            x_copy[mask] = '%d: %s-%s' % (i+1,point1,point2)
+            x_copy[mask] = '%s-%s' % (point1,point2)
             #x_copy[mask] = point1
             #print x_copy[mask]
             #print x
@@ -209,11 +209,19 @@ class WOE:
             
     #输出某个字段的woe值
     def print_woe(self,column):
-        for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
-            print i
+        #print column,type(self.woe_dicts[column].items()[0][0])
+        if type(self.woe_dicts[column].items()[0][0]) == str:
+            for i in sorted(self.woe_dicts[column].items(), key = lambda item:float(item[0].split('-')[0])):
+                print i
+        else:
+            for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
+                print i
             
     def plot_br_chart(self,column):
-        woe_lists = sorted(self.woe_dicts[column].items(),key = lambda item:item[0])
+        if type(self.woe_dicts[column].items()[0][0]) == str:
+            woe_lists = sorted(self.woe_dicts[column].items(), key = lambda item:float(item[0].split('-')[0]))
+        else:
+            woe_lists = sorted(self.woe_dicts[column].items(),key = lambda item:item[0])
         tick_label = [i[0] for i in woe_lists]
         counts = [i[1][1] for i in woe_lists]
         br_data = [i[1][2] for i in woe_lists]
