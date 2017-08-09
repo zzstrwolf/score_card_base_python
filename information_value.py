@@ -6,8 +6,16 @@ import math
 from scipy import stats
 from sklearn.utils.multiclass import type_of_target
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class WOE:
+    #class method
+    @staticmethod
+    def regroup(df,column,split_points):
+        for i in range(len(split_points)-1):
+            df[column][(df[column]>=split_points[i]) & (df[column]<=split_points[i+1])] = '%s-%s' % (split_points[i],split_points[i+1])
+        df[column] = df[column].astype(np.str_)
+    
     def __init__(self):
         self._WOE_MIN = -20
         self._WOE_MAX = 20
@@ -140,7 +148,7 @@ class WOE:
         for i in range(0, X.shape[-1]):
             x = X.iloc[:, i]
             #x_type = type_of_target(x)
-            #不用他的方法来判断,用set的方式，值大于15个全部认为是连续变量
+            #不用他的方法来判断,用set的方式，值大于10个全部认为是连续变量
             if x.name in category_cols:
                 temp_df.loc[:,x.name] = x
             elif len(set(x)) > 10:
@@ -206,12 +214,18 @@ class WOE:
             mask = np.in1d(x, x1)
             x_copy[mask] = i + 1
         return x_copy
-            
+    
+    def sort_dict(self,item):
+        if item[0].split('-')[0] == '':
+            return float(item[0])
+        else:
+            return float(item[0].split('-')[0])
+    
     #输出某个字段的woe值
     def print_woe(self,column):
         #print column,type(self.woe_dicts[column].items()[0][0])
         if type(self.woe_dicts[column].items()[0][0]) == str:
-            for i in sorted(self.woe_dicts[column].items(), key = lambda item:float(item[0].split('-')[0])):
+            for i in sorted(self.woe_dicts[column].items(), key = self.sort_dict):
                 print i
         else:
             for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
@@ -219,25 +233,27 @@ class WOE:
             
     def plot_br_chart(self,column):
         if type(self.woe_dicts[column].items()[0][0]) == str:
-            woe_lists = sorted(self.woe_dicts[column].items(), key = lambda item:float(item[0].split('-')[0]))
+            woe_lists = sorted(self.woe_dicts[column].items(), key = self.sort_dict)
         else:
             woe_lists = sorted(self.woe_dicts[column].items(),key = lambda item:item[0])
         tick_label = [i[0] for i in woe_lists]
         counts = [i[1][1] for i in woe_lists]
         br_data = [i[1][2] for i in woe_lists]
         x = range(len(counts))
-        fig, ax1 = plt.subplots()
-        plt.xticks(x,tick_label,rotation = 30)
-        ax1.set_ylabel('count', color='y')
-        ax1.tick_params('y', colors='y')
-        ax1.set_ylabel('count', color='y')
-        ax1.tick_params('y', colors='y')
+        fig, ax1 = plt.subplots(figsize=(12,8))
+        my_palette = sns.color_palette(n_colors=100)
+        sns.barplot(x,counts,ax=ax1)
+        plt.xticks(x,tick_label,rotation = 30,fontsize=12)
+        plt.title(column,fontsize=18)
+        ax1.set_ylabel('count',fontsize=15)
+        ax1.tick_params('y',labelsize=12)
         #ax1.bar(x,counts,tick_label = tick_label,color = 'y',align = 'center')
-        ax1.bar(x,counts,color = 'y',align = 'center')
+        #ax1.bar(x,counts,color = 'y',align = 'center')
+        
         ax2 = ax1.twinx()
-        ax2.plot(x,br_data,color='r')
-        ax2.set_ylabel('bad_rate', color='r')
-        ax2.tick_params('y', colors='r')
+        ax2.plot(x,br_data,color='black')
+        ax2.set_ylabel('bad rate',fontsize=15)
+        ax2.tick_params('y',labelsize=12)
         plot_margin = 0.25
         x0, x1, y0, y1 = ax1.axis()
         ax1.axis((x0 - plot_margin,
