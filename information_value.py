@@ -27,11 +27,17 @@ class WOE:
     
     #find columns including missing values
     def find_na_column(self,df):
-        miss_columns = []
+        miss_columns = {}
+        na_rate = [] 
+        a = {}
         for column in df:
-            if sum(pd.isnull(df[column])) > 0:
-                miss_columns.append(column)
-        return miss_columns
+            na_rate.append(1.0*sum(pd.isnull(df[column]))/len(df[column]))
+            a = dict(zip(df.columns,na_rate))      
+        for key in a:
+            if(a[key]) > 0:
+                miss_columns[key] = a[key]
+        miss_columns = sorted(miss_columns.items(), key=lambda d:d[1], reverse = True) 
+        return miss_columns 
         
     def woe(self, X, y, event=1, category_cols = []):
         #are there any columns including missing values
