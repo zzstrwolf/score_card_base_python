@@ -32,6 +32,12 @@ class WOE(object):
             if sum(pd.isnull(df[column])) > 0:
                 miss_columns.append(column)
         return miss_columns
+    
+    #return columns which NA rate > 0
+    def NA_rate(self,df):
+        NA_df = (df.isnull().sum()/df.shape[0]).reset_index()
+        NA_df.columns = ['variables','NA_rate']
+        return NA_df[NA_df['NA_rate']>0].sort_values(by='NA_rate',ascending=False)
         
     def woe(self, X, y, event=1, category_cols = []):
         #are there any columns including missing values
