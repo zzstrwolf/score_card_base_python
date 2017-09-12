@@ -17,8 +17,8 @@ class WOE(object):
         df[column] = df[column].astype(np.str_)
     
     def __init__(self):
-        self._WOE_MIN = -20
-        self._WOE_MAX = 20
+        self._WOE_MIN = -2
+        self._WOE_MAX = 2
         self.var_iv_df = pd.DataFrame()
         self.woe_dicts = {}
         self.X_bin = pd.DataFrame()
@@ -77,9 +77,9 @@ class WOE(object):
             rate_event = 1.0 * event_count / event_total
             rate_non_event = 1.0 * non_event_count / non_event_total
             if rate_event == 0:
-                woe1 = self._WOE_MIN
-            elif rate_non_event == 0:
                 woe1 = self._WOE_MAX
+            elif rate_non_event == 0:
+                woe1 = self._WOE_MIN
             else:
                 #woe1 = math.log(rate_event / rate_non_event)
                 woe1 = math.log(rate_non_event / rate_event)
@@ -297,6 +297,9 @@ class WOE(object):
               y1 * 1.1))
         plt.savefig(path)
         
+    def woe_br_chart(self,column):
+        self.print_woe(column)
+        self.plot_br_chart(column)
 
     @property
     def WOE_MIN(self):
