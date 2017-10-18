@@ -41,7 +41,7 @@ class WOE(object):
         NA_df.columns = ['variables','NA_rate']
         return NA_df[NA_df['NA_rate']>0].sort_values(by='NA_rate',ascending=False)
         
-    def woe(self, X, y, event=1, category_cols = []):
+    def woe(self, X, y, event=1, category_cols = [], discrete_bins = {}):
         #are there any columns including missing values
         miss_columns = self.find_na_column(X)
         if len(miss_columns) > 0:
@@ -49,7 +49,7 @@ class WOE(object):
             
         #检查y是否是二分类变量，如果不是，内部raise错误
         self.check_target_binary(y)
-        self.X_bin = self.feature_discretion(X, category_cols)
+        self.X_bin = self.feature_discretion(X, category_cols, discrete_bins)
 
         res_woe = []
         res_iv = []
@@ -152,7 +152,7 @@ class WOE(object):
         if y_type not in ['binary']:
             raise ValueError('Label type must be binary')
 
-    def feature_discretion(self, X, category_cols = []):
+    def feature_discretion(self, X, category_cols = [], discrete_bins = {}):
         temp_df = pd.DataFrame()
         for i in range(0, X.shape[-1]):
             x = X.iloc[:, i]
@@ -161,7 +161,11 @@ class WOE(object):
             if x.name in category_cols:
                 temp_df.loc[:,x.name] = x
             elif len(set(x)) > 10:
-                x1 = self.discrete(x)
+                if x.name in discrete_bins.keys():
+                    bin = discrete_bins[x.name]
+                else:
+                    bin = 5
+                x1 = self.discrete(x,bin)
                 temp_df.loc[:,x1.name] = x1
             else:
                 temp_df.loc[:,x.name] = x
