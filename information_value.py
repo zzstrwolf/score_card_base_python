@@ -7,6 +7,8 @@ from scipy import stats
 from sklearn.utils.multiclass import type_of_target
 import matplotlib.pyplot as plt
 import seaborn as sns
+from prettytable import PrettyTable
+from prettytable import MSWORD_FRIENDLY
 
 class WOE(object):
     #class method
@@ -82,7 +84,7 @@ class WOE(object):
                 woe1 = self._WOE_MIN
             else:
                 #woe1 = math.log(rate_event / rate_non_event)
-                woe1 = math.log(rate_non_event / rate_event)
+                woe1 = round(math.log(rate_non_event / rate_event),4)
             woe_dict[x1] = (woe1,event_count+non_event_count,round(event_count*1.0/(event_count+non_event_count),3))
             #iv += (rate_event - rate_non_event) * woe1
             iv += (rate_non_event - rate_event) * woe1
@@ -237,6 +239,31 @@ class WOE(object):
         else:
             for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
                 print i
+                
+    def print_woe_table1(self,column):
+        #print column,type(self.woe_dicts[column].items()[0][0])
+        bin_woe_df = pd.DataFrame(columns=['bins','woe','volume','bad rate'])
+        if type(self.woe_dicts[column].items()[0][0]) == str:
+            for i in sorted(self.woe_dicts[column].items(), key = self.sort_dict):
+                bin_woe_df.loc[bin_woe_df.shape[0]] = {'bins':i[0],'woe':i[1][0],'volume':i[1][1],'bad rate':i[1][2]}
+        else:
+            for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
+                bin_woe_df.loc[bin_woe_df.shape[0]] = {'bins':i[0],'woe':i[1][0],'volume':i[1][1],'bad rate':i[1][2]}
+        print bin_woe_df
+        
+    def print_woe_table2(self,column):
+        #print column,type(self.woe_dicts[column].items()[0][0])
+        bin_woe_tabel = PrettyTable(["bins", "woe", "volume", "bad rate"])
+        bin_woe_tabel.align["volume"] = "l"
+        bin_woe_tabel.align["bad rate"] = "l"
+        
+        if type(self.woe_dicts[column].items()[0][0]) == str:
+            for i in sorted(self.woe_dicts[column].items(), key = self.sort_dict):
+                bin_woe_tabel.add_row([i[0],i[1][0],i[1][1],i[1][2]])
+        else:
+            for i in sorted(self.woe_dicts[column].items(),key = lambda item:item[0]):
+                bin_woe_tabel.add_row([i[0],i[1][0],i[1][1],i[1][2]])
+        print bin_woe_tabel
             
     def plot_br_chart(self,column):
         if type(self.woe_dicts[column].items()[0][0]) == str:
@@ -298,8 +325,12 @@ class WOE(object):
         plt.savefig(path)
         
     def woe_br_chart(self,column):
-        self.print_woe(column)
+        self.print_woe_table2(column)
         self.plot_br_chart(column)
+        
+    def woe_br_chart_bat(self, min_iv = 0.03):
+        for i in self.var_iv_df.variable[self.var_iv_df.IV >= min_iv]:
+            self.woe_br_chart(i)
 
     @property
     def WOE_MIN(self):
