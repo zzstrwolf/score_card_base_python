@@ -274,6 +274,10 @@ class WOE(object):
             woe_lists = sorted(self.woe_dicts[column].items(), key = self.sort_dict)
         else:
             woe_lists = sorted(self.woe_dicts[column].items(),key = lambda item:item[0])
+        sns.set_style(rc={"axes.facecolor": "#EAEAF2",
+                "axes.edgecolor": "#EAEAF2",
+                "axes.linewidth": 1,
+                "grid.color": "white",})
         tick_label = [i[0] for i in woe_lists]
         counts = [i[1][1] for i in woe_lists]
         br_data = [i[1][2] for i in woe_lists]
@@ -284,14 +288,14 @@ class WOE(object):
         plt.xticks(x,tick_label,rotation = 30,fontsize=12)
         plt.title(column,fontsize=18)
         ax1.set_ylabel('count',fontsize=15)
-        ax1.tick_params('y',labelsize=12)
+        ax1.tick_params('y',direction='in',length=6, width=0.5, labelsize=12)
         #ax1.bar(x,counts,tick_label = tick_label,color = 'y',align = 'center')
         #ax1.bar(x,counts,color = 'y',align = 'center')
         
         ax2 = ax1.twinx()
         ax2.plot(x,br_data,color='black')
         ax2.set_ylabel('bad rate',fontsize=15)
-        ax2.tick_params('y',labelsize=12)
+        ax2.tick_params('y',direction='in',length=6, width=0.5, labelsize=12)
         plot_margin = 0.25
         x0, x1, y0, y1 = ax1.axis()
         ax1.axis((x0 - plot_margin,
