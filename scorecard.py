@@ -27,9 +27,9 @@ class scorecard(object):
         self.woe_hash = {}
         self.X_bin = pd.DataFrame()
         self.X_woe = pd.DataFrame()
-        
+    
+    #Are there any columns including missing values
     def check_variables(self,X):
-        #Are there any columns including missing values
         miss_columns = self.find_NA_column(X)
         if len(miss_columns) > 0:
             raise Exception('there are some columns (%s) including missing values' % ', '.join(miss_columns))
@@ -42,7 +42,7 @@ class scorecard(object):
                 miss_columns.append(column)
         return miss_columns
     
-    #return columns which NA rate > 0
+    #Return columns which NA rate > 0
     def NA_rate(self, df):
         NA_df = (df.isnull().sum()/df.shape[0]).reset_index()
         NA_df.columns = ['variables','NA_rate']
@@ -62,7 +62,7 @@ class scorecard(object):
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
             mask = (x >= point1) & (x <= point2)
             x_copy[mask] = '%s--%s' % (point1,point2)
-        mask = (x==miss_value)
+        mask = x==miss_value
         x_copy[mask] = '%s--%s' % (miss_value,miss_value)
         return x_copy
             
