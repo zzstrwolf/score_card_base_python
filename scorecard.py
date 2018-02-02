@@ -57,13 +57,12 @@ class scorecard(object):
         x_copy = pd.Series.copy(x)
         x_copy = x_copy.astype(str)
         x_gt0 = x[x!=miss_value]
-        #x_gt0 = x[x>=0]
         for i in range(bin):
             point1 = stats.scoreatpercentile(x_gt0, i * (100.0/bin))
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
             mask = (x >= point1) & (x <= point2)
             x_copy[mask] = '%s--%s' % (point1,point2)
-        mask = x==miss_value
+        mask = (x==miss_value)
         x_copy[mask] = '%s--%s' % (miss_value,miss_value)
         return x_copy
             
