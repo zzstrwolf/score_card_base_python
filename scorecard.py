@@ -27,9 +27,9 @@ class scorecard(object):
         self.woe_hash = {}
         self.X_bin = pd.DataFrame()
         self.X_woe = pd.DataFrame()
-        
+    
+    #Are there any columns including missing values
     def check_variables(self,X):
-        #Are there any columns including missing values
         miss_columns = self.find_NA_column(X)
         if len(miss_columns) > 0:
             raise Exception('there are some columns (%s) including missing values' % ', '.join(miss_columns))
@@ -42,7 +42,7 @@ class scorecard(object):
                 miss_columns.append(column)
         return miss_columns
     
-    #return columns which NA rate > 0
+    #Return columns which NA rate > 0
     def NA_rate(self, df):
         NA_df = (df.isnull().sum()/df.shape[0]).reset_index()
         NA_df.columns = ['variables','NA_rate']
@@ -53,15 +53,17 @@ class scorecard(object):
         if y_type != 'binary':
             raise ValueError('Label type must be binary')
             
-    def discrete(self, x, bin=5):
+    def discrete(self, x, bin=5,miss_value=-2):
         x_copy = pd.Series.copy(x)
         x_copy = x_copy.astype(str)
-        x_gt0 = x[x>=0]
+        x_gt0 = x[x!=miss_value]
         for i in range(bin):
             point1 = stats.scoreatpercentile(x_gt0, i * (100.0/bin))
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
             mask = (x >= point1) & (x <= point2)
-            x_copy[mask] = '%s-%s' % (point1,point2)
+            x_copy[mask] = '%s--%s' % (point1,point2)
+        mask = (x==miss_value)
+        x_copy[mask] = '%s--%s' % (miss_value,miss_value)
         return x_copy
             
     def feature_discrete(self, X, category_cols = [], discrete_bins = {}):
@@ -157,8 +159,8 @@ class scorecard(object):
         
     def grade(self, x, bin=5):
         x_copy = pd.Series.copy(x)
-        x_gt0 = x[x>=0]
-        
+        #x_gt0 = x[x>=0]
+        x_gt0 = x
         for i in range(bin):
             point1 = stats.scoreatpercentile(x_gt0, i * (100.0/bin))
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
@@ -168,14 +170,14 @@ class scorecard(object):
         return x_copy
     
     def sort_dict(self,item):
-        if item[0].split('-')[0] == '':
+        if item[0].split('--')[0] == '':
             return float(item[0])
         else:
-            return float(item[0].split('-')[0])
+            return float(item[0].split('--')[0])
     
     def print_woe(self,column):
         if type(self.woe_hash[column].items()[0][0]) == str:
-            for i in sorted(self.woe_hash[column].items(), key = self.sort_dict):
+            for i in sorted(self.woe_hash[column].items(), key = lambda item:item[0]):
                 print i
         else:
             for i in sorted(self.woe_hash[column].items(), key = lambda item:item[0]):
