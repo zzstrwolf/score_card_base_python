@@ -62,7 +62,7 @@ class scorecard(object):
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
             mask = (x >= point1) & (x <= point2)
             x_copy[mask] = '%s--%s' % (point1,point2)
-        mask = x==miss_value
+        mask = (x==miss_value)
         x_copy[mask] = '%s--%s' % (miss_value,miss_value)
         return x_copy
             
