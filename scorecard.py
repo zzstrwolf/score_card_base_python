@@ -16,8 +16,9 @@ from IPython.display import display,HTML
 class scorecard(object):
     @staticmethod
     def regroup(df,column,split_points):
+        df_copy=df.copy()
         for i in range(len(split_points)-1):
-            df[column][(df[column]>=split_points[i]) & (df[column]<=split_points[i+1])] = '%s-%s' % (split_points[i],split_points[i+1])
+            df[column][(df_copy[column]>=split_points[i]) & (df_copy[column]<=split_points[i+1])] = '%s--%s' % (split_points[i],split_points[i+1])
         df[column] = df[column].astype(np.str_)
         
     def __init__(self,woe_min = -2,woe_max = 2):
@@ -61,7 +62,7 @@ class scorecard(object):
             point1 = stats.scoreatpercentile(x_gt0, i * (100.0/bin))
             point2 = stats.scoreatpercentile(x_gt0, (i + 1) * (100.0/bin))
             mask = (x >= point1) & (x <= point2)
-            x_copy[mask] = '%s-%s' % (point1,point2)
+            x_copy[mask] = '%s--%s' % (point1,point2)
         return x_copy
             
     def feature_discrete(self, X, category_cols = [], discrete_bins = {}):
@@ -168,10 +169,10 @@ class scorecard(object):
         return x_copy
     
     def sort_dict(self,item):
-        if item[0].split('-')[0] == '':
+        if len(item[0].split('--'))==1:
             return float(item[0])
         else:
-            return float(item[0].split('-')[0])
+            return float(item[0].split('--')[0])
     
     def print_woe(self,column):
         if type(self.woe_hash[column].items()[0][0]) == str:
@@ -322,16 +323,17 @@ class scorecard(object):
         for column in self.X_woe.columns:
             if type(woe_hash_copy[column].keys()[0]) == str:
                 for k in woe_hash_copy[column].keys():
-                    if k.split('-')[0] == '':
+                    if (float(k.split('--')[0])<0) & (len(k.split('--'))==1) :
                         X_test_c[column][X_test[column] == float(k)] = woe_hash_copy[column][k][0]
                         woe_hash_copy[column].pop(k)
                 for i,item in enumerate(sorted(woe_hash_copy[column].items(), key = self.sort_dict)):
-                    if i == 0:
-                        X_test_c[column][(float(item[0].split('-')[1]) >= X_test[column]) & (X_test[column] >= 0)] = woe_hash_copy[column][item[0]][0]
-                    elif i == len(woe_hash_copy[column]) - 1:
-                        X_test_c[column][X_test[column] >= float(item[0].split('-')[0])] = woe_hash_copy[column][item[0]][0]
-                    else:
-                        X_test_c[column][(float(item[0].split('-')[1]) >= X_test[column]) & (X_test[column] >= float(item[0].split('-')[0]))] = woe_hash_copy[column][item[0]][0]
+                    X_test_c[column][(float(item[0].split('--')[1]) >= X_test[column]) & (X_test[column] >= float(item[0].split('--')[0]))] = woe_hash_copy[column][item[0]][0]
+#                    if i == 0:
+#                        X_test_c[column][(float(item[0].split('--')[1]) >= X_test[column]) & (X_test[column] >= float(item[0].split('--')[0]))] = woe_hash_copy[column][item[0]][0]
+#                    elif i == len(woe_hash_copy[column]) - 1:
+#                        X_test_c[column][X_test[column] >= float(item[0].split('--')[0])] = woe_hash_copy[column][item[0]][0]
+#                    else:
+#                        X_test_c[column][(float(item[0].split('--')[1]) >= X_test[column]) & (X_test[column] >= float(item[0].split('--')[0]))] = woe_hash_copy[column][item[0]][0]
             else:
                 for j in woe_hash_copy[column].keys():
                     X_test_c[column][X_test[column] == j] = woe_hash_copy[column][j][0]
